@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KMRL-iDMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style type="text/css">
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      
+      /* Sidebar */
+      .sidebar {
+        transition: transform 0.3s ease;
+        background: linear-gradient(145deg, #1e3a8a 0%, #3730a3 50%, #1e40af 100%);
+        box-shadow: 4px 0 20px rgba(30, 58, 138, 0.3);
+      }
+      .sidebar-hidden {
+        transform: translateX(-100%);
+      }
+      
+      /* Sidebar nav items */
+      .nav-item {
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        margin-bottom: 8px;
+        position: relative;
+        overflow: hidden;
+      }
+      .nav-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+      }
+      .nav-item:hover::before {
+        left: 100%;
+      }
+      .nav-item:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+        transform: translateX(8px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+      .nav-item.active {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border-left: 4px solid #60a5fa;
+      }
+      
+      /* Main content area styling */
+      .main-content {
+        background: linear-gradient(135deg, #fafafa 0%, #f1f5f9 100%);
+        min-height: 100vh;
+      }
+      
+      /* Upload area styling */
+      .upload-area {
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .upload-area::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        animation: rotate 6s linear infinite;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .upload-area:hover::before {
+        opacity: 1;
+      }
+      .upload-area:hover {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+      }
+      .upload-area.dragover {
+        border-color: #2563eb;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+      }
+      
+      @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Table styling */
+      .content-table {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+      }
+      .content-table thead {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .content-table th {
+        padding: 20px 24px;
+        font-weight: 600;
+        font-size: 13px;
+        color: #475569;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .content-table td {
+        padding: 18px 24px;
+        border-bottom: 1px solid rgba(241, 245, 249, 0.8);
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .content-table tbody tr {
+        transition: all 0.2s ease;
+      }
+      .content-table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        transform: scale(1.01);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      .content-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+      
+      /* Priority badges */
+      .priority-high {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+        animation: pulse-red 2s infinite;
+      }
+      .priority-low {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+      }
+      
+      @keyframes pulse-red {
+        0%, 100% { box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2); }
+        50% { box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4); }
+      }
+      
+      /* Button styling */
+      .btn-primary {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+      .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+      }
+      .btn-primary:hover::before {
+        left: 100%;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+      }
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      .btn-secondary {
+        background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        color: #2563eb;
+      }
+      
+      /* Back button */
+      .back-button {
+        color: #2563eb;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 0;
+        margin-bottom: 24px;
+      }
+      .back-button:hover {
+        color: #1d4ed8;
+        transform: translateX(-4px);
+      }
+      
+      /* Card effects */
+      .doc-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .doc-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      }
+      
+      /* Modal */
+      .modal-content {
+        max-height: 85vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #6b7280 #e5e7eb;
+      }
+      .modal-content::-webkit-scrollbar {
+        width: 8px;
+      }
+      .modal-content::-webkit-scrollbar-thumb {
+        background-color: #6b7280;
+        border-radius: 4px;
+      }
+      
+      /* Notification */
+      .notification {
+        min-width: 300px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateX(20px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .notification.show {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .notification.success {
+        background: linear-gradient(to right, #10b981, #059669);
+      }
+      .notification.pending {
+        background: linear-gradient(to right, #f59e0b, #d97706);
+      }
+      .notification.error {
+        background: linear-gradient(to right, #ef4444, #dc2626);
+      }
+      .notification.info {
+        background: linear-gradient(to right, #3b82f6, #2563eb);
+      }
+      
+      /* Loading spinner */
+      .spinner {
+        border: 3px solid #e5e7eb;
+        border-top: 3px solid #2563eb;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Dashboard cards */
+      .dashboard-card {
+        background: linear-gradient(135deg, white 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+        position: relative;
+        overflow: hidden;
+      }
+      .dashboard-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .dashboard-card:hover::before {
+        opacity: 1;
+      }
+      .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+      
+      /* Department header styling */
+      .dept-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #7c3aed 100%);
+        color: white;
+        padding: 32px 0;
+        margin: -24px -24px 32px -24px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .dept-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: rotate 8s linear infinite;
+      }
+      .dept-header h1 {
+        position: relative;
+        z-index: 2;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        margin: 0;
+      }
+      .dept-header .dept-icon {
+        position: relative;
+        z-index: 2;
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.9;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100%;
+          z-index: 1000;
+        }
+        .main-content {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 text-white p-6 flex-shrink-0 sidebar">
+      <div class="flex items-center gap-3 mb-12">
+        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+          <i class="fa fa-folder-open text-white text-xl"></i>
+        </div>
+        <h1 class="text-xl font-bold">KMRL IDMS</h1>
+      </div>
+      <nav>
+        <ul class="space-y-2">
+          <li>
+            <button
+              id="homeBtn"
+              onclick="loadHomeDocs()"
+              class="w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition flex items-center gap-3 nav-item"
+              aria-label="Go to Home"
+            >
+              <i class="fa fa-home w-5"></i> 
+              <span>Home</span>
+            </button>
+          </li>
+          <li>
+            <button
+              onclick="toggleDeptDropdown(event)"
+              class="w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition flex items-center gap-3 nav-item"
+              aria-label="Toggle Departments Dropdown"
+            >
+              <i class="fa fa-building w-5"></i> 
+              <span>Departments</span>
+              <i class="fa fa-caret-down ml-auto"></i>
+            </button>
+            <ul id="departmentsList" class="hidden pl-8 space-y-1 mt-2"></ul>
+          </li>
+          <li>
+            <button
+              id="uploadBtn"
+              onclick="showSection('upload')"
+              class="w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition flex items-center gap-3 nav-item"
+              aria-label="Upload Document"
+            >
+              <i class="fa fa-upload w-5"></i> 
+              <span>Upload</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button
+      id="menuToggle"
+      class="md:hidden fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-lg"
+      aria-label="Toggle Sidebar"
+    >
+      <i class="fa fa-bars"></i>
+    </button>
+
+    <!-- Main Content -->
+    <main class="flex-1 main-content">
+      <!-- Back Button -->
+      <div id="backBtn" class="hidden p-6 pb-0">
+        <button
+          onclick="goBack()"
+          class="back-button"
+          aria-label="Go Back"
+        >
+          <i class="fa fa-arrow-left"></i> Back
+        </button>
+      </div>
+
+      <!-- Upload Section -->
+      <!-- Upload Section -->
+<section id="upload" class="hidden p-6">
+  <div class="max-w-6xl">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">All Documents</h1>
+    
+    <!-- Upload Document Card -->
+    <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">Upload Document</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- File Upload Area -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-4">Select File</label>
+          <div class="upload-area p-8 text-center cursor-pointer" onclick="document.getElementById('fileInput').click()">
+            <div id="uploadAreaContent" class="flex flex-col items-center">
+              <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                <i class="fa fa-cloud-upload-alt text-blue-500 text-xl"></i>
+              </div>
+              <p class="text-blue-600 font-medium mb-1">Upload a file</p>
+              <p class="text-sm text-gray-500">or drag and drop</p>
+              <p class="text-xs text-gray-400 mt-2">PNG, JPG, PDF up to 10MB</p>
+            </div>
+            <input
+              type="file"
+              id="fileInput"
+              class="hidden"
+              aria-label="Select File"
+            />
+          </div>
+        </div>
+        
+        <!-- Priority and Upload -->
+        <div class="flex flex-col justify-center">
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-4">Priority</label>
+            <div class="flex gap-4">
+              <label class="flex items-center">
+                <input type="radio" name="priority" value="Low" checked class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                <span class="ml-2 text-sm text-gray-700">Low</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="priority" value="High" class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                <span class="ml-2 text-sm text-gray-700">High</span>
+              </label>
+            </div>
+          </div>
+          
+          <button
+            onclick="handleUpload()"
+            class="btn-primary w-full justify-center"
+            aria-label="Upload Document"
+          >
+            <i class="fa fa-upload"></i>
+            Upload Document
+          </button>
+        </div>
+      </div>
+      <div id="uploadMsg" class="mt-4 text-green-600 font-medium"></div>
+    </div>
+
+    <!-- Content Tables -->
+    <div class="bg-white rounded-xl shadow-sm p-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">Content Tables</h2>
+      <div class="overflow-x-auto">
+        <table id="documentsTable" class="content-table w-full">
+          <thead>
+            <tr>
+              <th>Document Name</th>
+              <th>Department</th>
+              <th>Uploaded By</th>
+              <th>Uploaded Date</th>
+              <th>Priority</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="documentsTableBody">
+            <!-- Documents will be populated here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Table pagination -->
+      <div class="flex justify-between items-center mt-6">
+        <button class="btn-secondary" id="prevTableBtn" onclick="prevTablePage()" disabled>
+          <i class="fa fa-chevron-left"></i>
+          Previous
+        </button>
+        <span class="text-sm text-gray-600" id="tablePageInfo">Page 1</span>
+        <button class="btn-secondary" id="nextTableBtn" onclick="nextTablePage()">
+          Next
+          <i class="fa fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <!-- Home Section -->
+      <section id="home" class="hidden p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">All Documents</h1>
+        <div id="homeDashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"></div>
+        <div id="docList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </section>
+
+      <!-- Department Section -->
+      <section id="department" class="hidden p-6">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+          <div class="dept-header">
+            <div class="dept-icon">
+              <i class="fa fa-building"></i>
+            </div>
+            <h1 id="deptTitle" class="dept-title"></h1>
+          </div>
+        </div>
+        <div id="deptDashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"></div>
+        <div id="deptDocs" class="space-y-6"></div>
+      </section>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="hidden p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+        <div id="mainDashboard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Documents</h3>
+            <div id="recentDocuments" class="space-y-4"></div>
+          </div>
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Department Status</h3>
+            <div id="departmentStatus" class="space-y-4"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal -->
+    <div
+      id="docModal"
+      class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-xl w-11/12 sm:w-3/4 max-w-4xl modal-content relative">
+        <button
+          onclick="closeModal()"
+          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
+          aria-label="Close Modal"
+        >
+          <i class="fa fa-times"></i>
+        </button>
+        <h2 id="modalTitle" class="text-xl font-semibold text-gray-800 mb-4"></h2>
+        <div class="flex border-b border-gray-200 mb-4">
+          <button
+            id="tabContentBtn"
+            onclick="switchTab('content')"
+            class="px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600"
+            aria-label="View Content Tab"
+          >
+            Content
+          </button>
+          <button
+            id="tabTablesBtn"
+            onclick="switchTab('tables')"
+            class="px-4 py-2 font-medium text-gray-600 hover:text-blue-600"
+            aria-label="View Tables Tab"
+          >
+            Tables
+          </button>
+        </div>
+        <div id="tabContainer" class="mb-6">
+          <div id="tabContent" class="tab-pane text-gray-700"></div>
+          <div id="tabTables" class="tab-pane hidden"></div>
+        </div>
+        <div class="flex justify-between items-center mb-4">
+          <button
+            id="prevBtn"
+            onclick="showPrevSlide()"
+            class="btn-secondary disabled:opacity-50"
+            aria-label="Previous Slide"
+          >
+            <i class="fa fa-chevron-left"></i>
+            Previous
+          </button>
+          <span id="slideIndicator" class="text-gray-600 font-medium"></span>
+          <button
+            id="nextBtn"
+            onclick="showNextSlide()"
+            class="btn-secondary disabled:opacity-50"
+            aria-label="Next Slide"
+          >
+            Next
+            <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="flex gap-4">
+          <a
+            id="downloadLink"
+            class="btn-secondary"
+            target="_blank"
+            style="display: none"
+            aria-label="Download Processed PDF"
+          >
+            <i class="fa fa-download"></i>
+            Download PDF
+          </a>
+          <a
+            id="downloadOriginalLink"
+            class="btn-secondary"
+            target="_blank"
+            style="display: none"
+            aria-label="Download Original Document"
+          >
+            <i class="fa fa-download"></i>
+            Download Original
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div
+      id="notificationContainer"
+      class="fixed top-4 right-4 z-50 space-y-2"
+    ></div>
+
+    <script>
+      const apiBase = "http://127.0.0.1:8000/api/v1";
+      const departments = [
+        "HR",
+        "Finance", 
+        "Operations",
+        "Engineering",
+        "Safety & Compliance",
+      ];
+      let cachedDocs = null;
+      let sectionHistory = [];
+      let currentSlides = [];
+      let currentIndex = 0;
+      let currentTab = 'content';
+      let currentTablePage = 1;
+      const tablePageSize = 10;
+
+      // ---------------- SECTIONS ----------------
+      function showSection(sectionId) {
+        // Update active nav item
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        
+        const current = document.querySelector("section:not(.hidden)");
+        if (current && current.id !== sectionId && sectionId !== "home") {
+          sectionHistory.push(current.id);
+        }
+        document
+          .querySelectorAll("section")
+          .forEach((s) => s.classList.add("hidden"));
+        document.getElementById(sectionId).classList.remove("hidden");
+        document.getElementById("backBtn").style.display =
+          sectionHistory.length > 0 && sectionId !== "home" ? "block" : "none";
+        
+        // Add active class to current nav item
+        if (sectionId === 'home') {
+          document.getElementById('homeBtn').classList.add('active');
+        } else if (sectionId === 'upload') {
+          document.getElementById('uploadBtn').classList.add('active');
+        }
+        
+        if (window.innerWidth < 768) {
+          document.getElementById("sidebar").classList.add("sidebar-hidden");
+        }
+      }
+
+      function goBack() {
+        const prev = sectionHistory.pop();
+        if (prev) {
+          showSection(prev);
+        }
+      }
+
+      // ---------------- DEPARTMENT DROPDOWN ----------------
+      function loadDepartmentsDropdown() {
+        const deptList = document.getElementById("departmentsList");
+        deptList.innerHTML = "";
+        departments.forEach((d) => {
+          const li = document.createElement("li");
+          li.innerHTML = `<button type="button" onclick="loadDepartmentDocs('${d}')" class="w-full text-left px-4 py-2 hover:bg-white hover:bg-opacity-10 rounded text-white hover:text-white transition text-sm" aria-label="Select ${d} Department">${d}</button>`;
+          deptList.appendChild(li);
+        });
+      }
+
+      function toggleDeptDropdown(e) {
+        e.stopPropagation();
+        const deptList = document.getElementById("departmentsList");
+        deptList.classList.toggle("hidden");
+      }
+
+      window.addEventListener("click", function (e) {
+        const deptList = document.getElementById("departmentsList");
+        const button = deptList.previousElementSibling;
+        if (!deptList.contains(e.target) && !button.contains(e.target)) {
+          deptList.classList.add("hidden");
+        }
+      });
+
+      // ---------------- MOBILE MENU ----------------
+      document.getElementById("menuToggle").addEventListener("click", () => {
+        document.getElementById("sidebar").classList.toggle("sidebar-hidden");
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+          document.getElementById("sidebar").classList.remove("sidebar-hidden");
+        }
+      });
+
+      // ---------------- HOME DOCS ----------------
+      async function loadHomeDocs() {
+        showSection("home");
+        const container = document.getElementById("docList");
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500 flex items-center justify-center gap-2"><div class="spinner"></div>Loading...</div>`;
+
+        try {
+          const res = await fetch(`${apiBase}/documents-list`);
+          cachedDocs = await res.json();
+
+          cachedDocs.forEach((doc) => {
+            if (!doc.departments) doc.departments = {};
+            if (doc.departments_approval) {
+              Object.keys(doc.departments_approval).forEach(
+                (d) => (doc.departments[d] = doc.departments_approval[d])
+              );
+            }
+            const assignedDepartments = Object.keys(doc.departments);
+            doc.approved =
+              assignedDepartments.length > 0 &&
+              assignedDepartments.every((d) => doc.departments[d] === true);
+          });
+
+          const high = cachedDocs.filter((d) => d.priority === "High").length;
+          const low = cachedDocs.filter((d) => d.priority === "Low").length;
+          const total = cachedDocs.length;
+          const pending = cachedDocs.filter((d) => !d.approved).length;
+          const approved = cachedDocs.filter((d) => d.approved).length;
+
+          renderDashboard("homeDashboard", total, high, low, pending, approved);
+          renderDocs(cachedDocs, container);
+        } catch (err) {
+          console.error(err);
+          container.innerHTML =
+            "<div class='text-red-600 font-medium text-center py-8'>Failed to load documents</div>";
+        }
+      }
+
+      function renderDocs(docs, container) {
+        container.innerHTML = "";
+        if (docs.length === 0) {
+          container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500">No documents available.</div>`;
+          return;
+        }
+
+        docs.forEach((doc) => {
+          const div = document.createElement("div");
+          div.className = "doc-card bg-white p-6 rounded-xl shadow-sm transition flex flex-col";
+          const assignedDepartments = Object.keys(doc.departments);
+          const overallApproved =
+            assignedDepartments.length > 0 &&
+            assignedDepartments.every((d) => doc.departments[d] === true)
+              ? "Approved"
+              : "Pending";
+
+          div.innerHTML = `
+            <div class="flex flex-col">
+              <h3 class="font-semibold text-lg text-gray-800 truncate" title="${doc.filename}">${doc.filename}</h3>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-sm text-gray-500">${new Date(
+                  doc.created_at
+                ).toLocaleDateString()}</span>
+                <span class="${
+                  doc.priority === "High" ? "priority-high" : "priority-low"
+                }">
+                  ${doc.priority}
+                </span>
+              </div>
+              <span class="inline-block mt-2 px-3 py-1 text-sm rounded-full ${
+                overallApproved === "Approved"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-yellow-100 text-yellow-700"
+              }">
+                ${overallApproved}
+              </span>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              ${Object.keys(doc.departments)
+                .map(
+                  (d) => `
+                    <button
+                      type="button"
+                      onclick="viewDepartment('${doc.id}', '${d}')"
+                      class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition"
+                      aria-label="View ${doc.filename} in ${d}"
+                    >
+                      ${d}
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // ---------------- TABLE FUNCTIONS ----------------
+      function renderDocumentsTable() {
+        if (!cachedDocs) return;
+        
+        const tableBody = document.getElementById('documentsTableBody');
+        const startIndex = (currentTablePage - 1) * tablePageSize;
+        const endIndex = startIndex + tablePageSize;
+        const paginatedDocs = cachedDocs.slice(startIndex, endIndex);
+        
+        tableBody.innerHTML = '';
+        
+        paginatedDocs.forEach(doc => {
+          const row = document.createElement('tr');
+          const assignedDepts = Object.keys(doc.departments || {});
+          const deptText = assignedDepts.length > 0 ? assignedDepts.join(', ') : 'Unassigned';
+          
+          row.innerHTML = `
+            <td class="font-medium text-gray-900">${doc.filename}</td>
+            <td>${deptText}</td>
+            <td>System User</td>
+            <td>${new Date(doc.created_at).toLocaleDateString()}</td>
+            <td>
+              <span class="${doc.priority === 'High' ? 'priority-high' : 'priority-low'}">
+                ${doc.priority}
+              </span>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <button onclick="viewFullDocument('${doc.id}')" class="btn-secondary text-xs">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <a href="${apiBase}/documents/${doc.id}/download-original" class="btn-secondary text-xs" target="_blank">
+                  <i class="fa fa-download"></i>
+                </a>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+        
+        // Update pagination controls
+        const totalPages = Math.ceil(cachedDocs.length / tablePageSize);
+        document.getElementById('tablePageInfo').textContent = `Page ${currentTablePage} of ${totalPages}`;
+        document.getElementById('prevTableBtn').disabled = currentTablePage === 1;
+        document.getElementById('nextTableBtn').disabled = currentTablePage === totalPages;
+      }
+
+      function nextTablePage() {
+        const totalPages = Math.ceil(cachedDocs.length / tablePageSize);
+        if (currentTablePage < totalPages) {
+          currentTablePage++;
+          renderDocumentsTable();
+        }
+      }
+
+      function prevTablePage() {
+        if (currentTablePage > 1) {
+          currentTablePage--;
+          renderDocumentsTable();
+        }
+      }
+
+      // ---------------- LOAD DEPARTMENT DOCUMENTS ----------------
+      async function loadDepartmentDocs(dept) {
+        showSection("department");
+        document.getElementById("deptTitle").innerHTML = dept;
+
+        const container = document.getElementById("deptDocs");
+        container.innerHTML = `
+          <div class="text-gray-500 py-8 text-center flex items-center justify-center gap-2">
+            <div class="spinner"></div>Loading documents for ${dept}...
+          </div>
+        `;
+
+        try {
+          if (!cachedDocs) {
+            const res = await fetch(`${apiBase}/documents-list`);
+            cachedDocs = await res.json();
+          }
+
+          // Only documents assigned to this department
+          const filteredDocs = cachedDocs.filter(
+            (doc) => doc.departments && doc.departments.hasOwnProperty(dept)
+          );
+
+          container.innerHTML = "";
+
+          for (const doc of filteredDocs) {
+            try {
+              const resDept = await fetch(`${apiBase}/departments/${doc.id}/${dept}`);
+              const deptData = await resDept.json();
+              if (!deptData || deptData.length === 0) continue;
+
+              doc.departments[dept] = deptData.every((p) => p.approved);
+              doc.approved = Object.values(doc.departments).every((v) => v === true);
+
+              const combinedContent = deptData.map((p) => p.content).join("\n\n");
+              const deptApproved = doc.departments[dept];
+
+              const details = document.createElement("details");
+              details.className = "doc-card bg-white p-6 rounded-xl shadow-sm transition";
+              details.innerHTML = `
+                <summary class="font-semibold text-lg text-gray-800 cursor-pointer flex items-center justify-between">
+                  <span class="truncate" title="${doc.filename}">${doc.filename}</span>
+                  <i class="fa fa-chevron-down text-gray-500"></i>
+                </summary>
+                <div class="mt-4">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-sm text-gray-500">${new Date(doc.created_at).toLocaleDateString()}</span>
+                    <span class="${doc.priority === "High" ? "priority-high" : "priority-low"}">
+                      ${doc.priority}
+                    </span>
+                  </div>
+                  <p class="text-gray-600 text-sm">${combinedContent.substring(0, 200) + (combinedContent.length > 200 ? "..." : "")}</p>
+                  <div class="mt-4 flex gap-2">
+                    <button type="button" onclick="viewFullDocumentDept('${doc.id}', '${dept}')" class="btn-primary">
+                      <i class="fa fa-eye"></i> View Full
+                    </button>
+                    <button type="button" class="btn-secondary approve-btn ${deptApproved ? "bg-yellow-100 text-yellow-800 border-yellow-300" : ""}" data-doc="${doc.id}" data-dept="${dept}">
+                      <i class="fa fa-${deptApproved ? "edit" : "check"}"></i>
+                      ${deptApproved ? "Review" : "Approve"}
+                    </button>
+                  </div>
+                </div>
+              `;
+              container.appendChild(details);
+
+              details.querySelector(".approve-btn").onclick = (e) => {
+                approveDepartment(doc.id, dept, e.currentTarget);
+              };
+            } catch (err) {
+              console.error(`Failed to load department content for doc ${doc.filename}:`, err);
+            }
+          }
+
+          // Update department dashboard
+          const total = filteredDocs.length;
+          const high = filteredDocs.filter(d => d.priority === "High").length;
+          const low = filteredDocs.filter(d => d.priority === "Low").length;
+          const approved = filteredDocs.filter(d => d.departments[dept] === true).length;
+          const pending = total - approved;
+
+          renderDashboard("deptDashboard", total, high, low, pending, approved);
+
+          if (filteredDocs.length === 0) {
+            container.innerHTML = `<div class="text-gray-500 text-center py-8">No documents for this department</div>`;
+            renderDashboard("deptDashboard", 0, 0, 0, 0, 0);
+          }
+
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = "<div class='text-red-600 font-medium text-center py-8'>Failed to load department documents</div>";
+          renderDashboard("deptDashboard", 0, 0, 0, 0, 0);
+        }
+      }
+
+      // ---------------- VIEW DOCUMENT MODAL ----------------
+      async function viewFullDocument(docId) {
+        const modal = document.getElementById("docModal");
+        const titleEl = document.getElementById("modalTitle");
+        modal.classList.remove("hidden");
+        titleEl.innerText = "Loading...";
+
+        currentSlides = [];
+        currentIndex = 0;
+
+        try {
+          const doc = cachedDocs.find(d => d.id === docId);
+          if (!doc) throw new Error("Document not found");
+
+          // Load content from all departments for this document
+          const allContent = [];
+          const allTables = [];
+
+          for (const dept of Object.keys(doc.departments || {})) {
+            try {
+              const resDept = await fetch(`${apiBase}/departments/${docId}/${dept}`);
+              const deptData = await resDept.json();
+              allContent.push(...deptData);
+            } catch (err) {
+              console.error(`Failed to load ${dept} content:`, err);
+            }
+          }
+
+          // Load tables
+          try {
+            const resTables = await fetch(`${apiBase}/documents/${docId}/ocr-tables`);
+            const tableData = await resTables.json();
+            allTables.push(...(tableData.pages || []));
+          } catch (err) {
+            console.error("Failed to load tables:", err);
+          }
+
+          // Organize by pages
+          const pagesMap = {};
+          allContent.forEach((page) => {
+            const pageNum = page.page_start;
+            if (!pagesMap[pageNum]) {
+              pagesMap[pageNum] = { content: page.content || "", tables: [] };
+            } else {
+              pagesMap[pageNum].content += "\n\n" + page.content;
+            }
+          });
+
+          allTables.forEach((page) => {
+            if (page.tables && page.tables.length > 0) {
+              if (!pagesMap[page.page_number]) {
+                pagesMap[page.page_number] = { content: "", tables: [] };
+              }
+              page.tables.forEach((table) => {
+                pagesMap[page.page_number].tables.push(table);
+              });
+            }
+          });
+
+          currentSlides = Object.keys(pagesMap)
+            .map((pn) => ({
+              page_start: parseInt(pn),
+              content: pagesMap[pn].content,
+              tables: pagesMap[pn].tables,
+            }))
+            .sort((a, b) => a.page_start - b.page_start);
+
+          titleEl.innerText = doc.filename;
+          const downloadLink = document.getElementById("downloadLink");
+          const downloadOriginalLink = document.getElementById("downloadOriginalLink");
+
+          downloadOriginalLink.href = `${apiBase}/documents/${docId}/download-original`;
+          downloadOriginalLink.style.display = "block";
+          downloadLink.style.display = "none"; // Hide processed PDF link for full document view
+
+          renderSlide(0);
+        } catch (err) {
+          console.error(err);
+          titleEl.innerText = "Error loading content";
+          document.getElementById("tabContent").innerHTML =
+            "<p class='text-gray-600'>Failed to load content.</p>";
+          document.getElementById("tabTables").innerHTML =
+            "<p class='text-gray-600'>Failed to load tables.</p>";
+        }
+      }
+
+      async function viewFullDocumentDept(docId, dept) {
+        const modal = document.getElementById("docModal");
+        const titleEl = document.getElementById("modalTitle");
+        modal.classList.remove("hidden");
+        titleEl.innerText = "Loading...";
+
+        currentSlides = [];
+        currentIndex = 0;
+
+        try {
+          const resDept = await fetch(`${apiBase}/departments/${docId}/${dept}`);
+          const deptData = await resDept.json();
+          const resTables = await fetch(`${apiBase}/documents/${docId}/ocr-tables`);
+          const tableData = await resTables.json();
+
+          const pagesMap = {};
+          deptData.forEach((page) => {
+            const pageNum = page.page_start;
+            if (!pagesMap[pageNum]) {
+              pagesMap[pageNum] = { content: page.content || "", tables: [] };
+            } else {
+              pagesMap[pageNum].content += "\n\n" + page.content;
+            }
+          });
+
+          tableData.pages.forEach((page) => {
+            if (page.tables && page.tables.length > 0) {
+              if (!pagesMap[page.page_number]) {
+                pagesMap[page.page_number] = { content: "", tables: [] };
+              }
+              page.tables.forEach((table) => {
+                pagesMap[page.page_number].tables.push(table);
+              });
+            }
+          });
+
+          currentSlides = Object.keys(pagesMap)
+            .map((pn) => ({
+              page_start: parseInt(pn),
+              content: pagesMap[pn].content,
+              tables: pagesMap[pn].tables,
+            }))
+            .sort((a, b) => a.page_start - b.page_start);
+
+          titleEl.innerText = `${dept} Content`;
+          const downloadLink = document.getElementById("downloadLink");
+          const downloadOriginalLink = document.getElementById("downloadOriginalLink");
+
+          downloadLink.href = `${apiBase}/departments/${docId}/${dept}/download`;
+          downloadLink.style.display = "block";
+          downloadOriginalLink.href = `${apiBase}/documents/${docId}/download-original`;
+          downloadOriginalLink.style.display = "block";
+
+          renderSlide(0);
+        } catch (err) {
+          console.error(err);
+          titleEl.innerText = "Error loading content";
+          document.getElementById("tabContent").innerHTML =
+            "<p class='text-gray-600'>Failed to load content.</p>";
+          document.getElementById("tabTables").innerHTML =
+            "<p class='text-gray-600'>Failed to load tables.</p>";
+        }
+      }
+
+      function renderSlide(index) {
+        const slide = currentSlides[index];
+        const contentTab = document.getElementById("tabContent");
+        const tablesTab = document.getElementById("tabTables");
+
+        contentTab.innerHTML = "";
+        tablesTab.innerHTML = "";
+
+        if (!slide) return;
+
+        if (slide.content && slide.content.trim().length > 0) {
+          const p = document.createElement("p");
+          p.className = "text-gray-700 whitespace-pre-wrap text-sm leading-relaxed";
+          p.innerText = slide.content;
+          contentTab.appendChild(p);
+        } else {
+          contentTab.innerHTML = "<p class='text-gray-600 text-sm'>No content available</p>";
+        }
+
+        if (slide.tables && slide.tables.length > 0) {
+          slide.tables.forEach((tbl) => {
+            const table = document.createElement("table");
+            table.className = "w-full border border-gray-200 text-sm text-left mb-4";
+
+            tbl.rows.forEach((row, ri) => {
+              const tr = document.createElement("tr");
+              tr.className = ri % 2 === 0 ? "bg-gray-50" : "bg-white";
+              row.forEach((cell) => {
+                const td = document.createElement(ri === 0 ? "th" : "td");
+                td.className = "border border-gray-200 p-3";
+                td.innerText = cell;
+                tr.appendChild(td);
+              });
+              table.appendChild(tr);
+            });
+
+            tablesTab.appendChild(table);
+          });
+        } else {
+          tablesTab.innerHTML = "<p class='text-gray-600 text-sm'>No tables on this page</p>";
+        }
+
+        document.getElementById("slideIndicator").innerText = `Page ${index + 1} / ${currentSlides.length}`;
+        document.getElementById("prevBtn").disabled = index === 0;
+        document.getElementById("nextBtn").disabled = index === currentSlides.length - 1;
+
+        switchTab(currentTab);
+      }
+
+      function showNextSlide() {
+        if (currentIndex < currentSlides.length - 1) {
+          currentIndex++;
+          renderSlide(currentIndex);
+        }
+      }
+
+      function showPrevSlide() {
+        if (currentIndex > 0) {
+          currentIndex--;
+          renderSlide(currentIndex);
+        }
+      }
+
+      // ---------------- MODAL CLOSE ----------------
+      function closeModal() {
+        const modal = document.getElementById("docModal");
+        const titleEl = document.getElementById("modalTitle");
+        const contentTab = document.getElementById("tabContent");
+        const tablesTab = document.getElementById("tabTables");
+        const downloadLink = document.getElementById("downloadLink");
+        const downloadOriginalLink = document.getElementById("downloadOriginalLink");
+
+        modal.classList.add("hidden");
+        titleEl.innerText = "";
+        contentTab.innerHTML = "";
+        tablesTab.innerHTML = "";
+        downloadLink.style.display = "none";
+        downloadLink.href = "#";
+        downloadOriginalLink.style.display = "none";
+        downloadOriginalLink.href = "#";
+      }
+
+      // ---------------- APPROVE / REVIEW FUNCTION ----------------
+      async function approveDepartment(docId, dept, btn) {
+        if (!cachedDocs) return;
+        const doc = cachedDocs.find(d => d.id === docId);
+        if (!doc) return;
+
+        const currentState = doc.departments[dept] || false;
+        const newState = !currentState;
+
+        // Optimistic UI update
+        doc.departments[dept] = newState;
+        doc.approved = Object.values(doc.departments).every(v => v === true);
+        updateButtonState(btn, newState);
+        updateDashboards(dept);
+
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`${apiBase}/departments/${docId}/${dept}/approve`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Failed to update approval");
+          }
+
+          const data = await res.json();
+          doc.departments[dept] = data.department_approved;
+          doc.approved = data.document_approved;
+
+          // Refresh all other departments from API
+          for (const d of departments) {
+            if (d === dept) continue;
+            try {
+              const resDept = await fetch(`${apiBase}/departments/${docId}/${d}`);
+              const deptData = await resDept.json();
+              doc.departments[d] = deptData?.every(p => p.approved) || false;
+            } catch (err) {
+              console.error(`Failed to refresh ${d}:`, err);
+            }
+          }
+
+          doc.approved = Object.values(doc.departments).every(v => v === true);
+
+          updateButtonState(btn, data.department_approved);
+          btn.disabled = false;
+
+          updateDashboards(dept);
+
+          showNotification(
+            `Department "${dept}" approval set to ${data.department_approved ? "approved" : "pending"}`,
+            data.department_approved ? "success" : "pending"
+          );
+
+        } catch (err) {
+          // Revert UI if API fails
+          doc.departments[dept] = currentState;
+          doc.approved = Object.values(doc.departments).every(v => v === true);
+          updateButtonState(btn, currentState);
+          btn.disabled = false;
+
+          updateDashboards(dept);
+          console.error(err);
+          showNotification(err.message || "Failed to update department approval", "error");
+        }
+      }
+
+      // ---------------- VIEW DEPARTMENT ----------------
+      async function viewDepartment(docId, dept) {
+        showSection("department");
+        document.getElementById("deptTitle").innerHTML = `<i class="fa fa-building text-blue-600"></i> <span class="font-semibold">${dept}</span>`;
+        const container = document.getElementById("deptDocs");
+        container.innerHTML = `<div class="text-gray-500 py-8 text-center flex items-center justify-center gap-2"><div class="spinner"></div>Loading document for ${dept}...</div>`;
+
+        try {
+          if (!cachedDocs) {
+            const res = await fetch(`${apiBase}/documents-list`);
+            cachedDocs = await res.json();
+          }
+
+          const doc = cachedDocs.find((d) => d.id === docId);
+          if (!doc) {
+            container.innerHTML = "<div class='text-red-600 text-center py-8'>Document not found</div>";
+            renderDashboard("deptDashboard", 0, 0, 0, 0, 0);
+            return;
+          }
+
+          let deptData = [];
+          try {
+            const resDept = await fetch(`${apiBase}/departments/${doc.id}/${dept}`);
+            deptData = await resDept.json();
+          } catch (err) {
+            console.error(err);
+            deptData = [];
+          }
+
+          if (!deptData || deptData.length === 0) {
+            container.innerHTML = "<div class='text-red-600 text-center py-8'>Document not assigned to this department</div>";
+            renderDashboard("deptDashboard", 0, 0, 0, 0, 0);
+            return;
+          }
+
+          container.innerHTML = "";
+          const content = deptData.map((p) => p.content).join("\n\n");
+
+          if (!doc.departments) doc.departments = {};
+          doc.departments[dept] = deptData.every((p) => p.approved);
+          doc.approved = Object.values(doc.departments).every((v) => v === true);
+
+          const details = document.createElement("details");
+          details.className = "doc-card bg-white p-6 rounded-xl shadow-sm transition";
+          details.innerHTML = `
+            <summary class="font-semibold text-lg text-gray-800 cursor-pointer flex items-center justify-between">
+              <span class="truncate" title="${doc.filename}">${doc.filename}</span>
+              <i class="fa fa-chevron-down text-gray-500"></i>
+            </summary>
+            <div class="mt-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-sm text-gray-500">${new Date(doc.created_at).toLocaleDateString()}</span>
+                <span class="${doc.priority === "High" ? "priority-high" : "priority-low"}">
+                  ${doc.priority}
+                </span>
+              </div>
+              <p class="text-gray-600 text-sm">${content.substring(0, 200) + (content.length > 200 ? "..." : "")}</p>
+              <div class="mt-4 flex gap-2">
+                <button type="button" onclick="viewFullDocumentDept('${doc.id}', '${dept}')" class="btn-primary" aria-label="View Full ${doc.filename} in ${dept}">
+                  <i class="fa fa-eye"></i> View Full
+                </button>
+                <button type="button" class="btn-secondary approve-btn ${doc.departments[dept] ? "bg-yellow-100 text-yellow-800 border-yellow-300" : ""}" data-doc="${doc.id}" data-dept="${dept}">
+                  <i class="fa fa-${doc.departments[dept] ? "edit" : "check"}"></i>
+                  ${doc.departments[dept] ? "Review" : "Approve"}
+                </button>
+              </div>
+            </div>
+          `;
+          container.appendChild(details);
+
+          details.querySelector(".approve-btn").onclick = (e) => {
+            approveDepartment(doc.id, dept, e.currentTarget);
+          };
+
+          const total = 1;
+          const high = doc.priority === "High" ? 1 : 0;
+          const low = doc.priority === "Low" ? 1 : 0;
+          const pending = doc.departments[dept] ? 0 : 1;
+          const approved = doc.departments[dept] ? 1 : 0;
+
+          renderDashboard("deptDashboard", total, high, low, pending, approved);
+        } catch (err) {
+          console.error(err);
+          container.innerHTML = "<div class='text-red-600 font-medium text-center py-8'>Failed to load document</div>";
+          renderDashboard("deptDashboard", 0, 0, 0, 0, 0);
+        }
+      }
+
+      // ---------------- UPDATE UI FUNCTIONS ----------------
+      function updateHomeDashboard() {
+        if (!cachedDocs) return;
+
+        const total = cachedDocs.length;
+        const high = cachedDocs.filter(d => d.priority === "High").length;
+        const low = cachedDocs.filter(d => d.priority === "Low").length;
+        const approved = cachedDocs.filter(d => d.approved).length;
+        const pending = total - approved;
+
+        renderDashboard("homeDashboard", total, high, low, pending, approved);
+      }
+
+      function updateDepartmentDashboard(dept) {
+        if (!cachedDocs || !dept) return;
+
+        const deptDocs = cachedDocs.filter(d => d.departments && d.departments.hasOwnProperty(dept));
+        const total = deptDocs.length;
+        const high = deptDocs.filter(d => d.priority === "High").length;
+        const low = deptDocs.filter(d => d.priority === "Low").length;
+        const approved = deptDocs.filter(d => d.departments[dept] === true).length;
+        const pending = total - approved;
+
+        renderDashboard("deptDashboard", total, high, low, pending, approved);
+      }
+
+      function updateDashboards(dept) {
+        updateHomeDashboard();
+        updateDepartmentDashboard(dept);
+        renderDocumentsTable(); // Update table if on upload section
+      }
+
+      function updateButtonState(btn, approved) {
+        const icon = btn.querySelector('i');
+        btn.innerHTML = `<i class="fa fa-${approved ? "edit" : "check"}"></i> ${approved ? "Review" : "Approve"}`;
+        
+        btn.classList.remove("bg-yellow-100", "text-yellow-800", "border-yellow-300");
+        if (approved) {
+          btn.classList.add("bg-yellow-100", "text-yellow-800", "border-yellow-300");
+        }
+      }
+
+      // ---------------- UPLOAD HANDLER ----------------
+      async function handleUpload() {
+        const fileInput = document.getElementById("fileInput");
+        const priorityRadio = document.querySelector('input[name="priority"]:checked');
+        const priority = priorityRadio ? priorityRadio.value : "Low";
+
+        if (fileInput.files.length === 0) {
+          showNotification("Please select a file", "error");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+        formData.append("priority", priority);
+
+        try {
+          const res = await fetch(`${apiBase}/upload`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            showNotification(errData.detail || "Failed to upload document", "error");
+            return;
+          }
+
+          const data = await res.json();
+          showNotification(`Document "${data.filename}" uploaded successfully!`, "success");
+
+          fileInput.value = "";
+          document.querySelector('input[name="priority"][value="Low"]').checked = true;
+          cachedDocs = null;
+          loadHomeDocs();
+          setTimeout(() => {
+            if (cachedDocs) renderDocumentsTable();
+          }, 1000);
+        } catch (err) {
+          console.error(err);
+          showNotification("Failed to upload document", "error");
+        }
+      }
+
+      // ---------------- DASHBOARD SECTION ----------------
+      function showDashboard() {
+        showSection("dashboard");
+        if (cachedDocs) {
+          const total = cachedDocs.length;
+          const high = cachedDocs.filter(d => d.priority === "High").length;
+          const low = cachedDocs.filter(d => d.priority === "Low").length;
+          const approved = cachedDocs.filter(d => d.approved).length;
+          const pending = total - approved;
+
+          renderDashboard("mainDashboard", total, high, low, pending, approved);
+          renderRecentDocuments();
+          renderDepartmentStatus();
+        }
+      }
+
+      function renderRecentDocuments() {
+        const container = document.getElementById("recentDocuments");
+        if (!cachedDocs) return;
+        
+        const recent = cachedDocs
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 5);
+          
+        container.innerHTML = recent.map(doc => `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p class="font-medium text-sm text-gray-900">${doc.filename}</p>
+              <p class="text-xs text-gray-500">${new Date(doc.created_at).toLocaleDateString()}</p>
+            </div>
+            <span class="${doc.priority === 'High' ? 'priority-high' : 'priority-low'}">${doc.priority}</span>
+          </div>
+        `).join('');
+      }
+
+      function renderDepartmentStatus() {
+        const container = document.getElementById("departmentStatus");
+        if (!cachedDocs) return;
+        
+        container.innerHTML = departments.map(dept => {
+          const deptDocs = cachedDocs.filter(d => d.departments && d.departments.hasOwnProperty(dept));
+          const approved = deptDocs.filter(d => d.departments[dept] === true).length;
+          const total = deptDocs.length;
+          const percentage = total > 0 ? Math.round((approved / total) * 100) : 0;
+          
+          return `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <p class="font-medium text-sm text-gray-900">${dept}</p>
+                <p class="text-xs text-gray-500">${approved}/${total} approved</p>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-medium text-gray-900">${percentage}%</span>
+                <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                  <div class="h-2 bg-blue-600 rounded-full" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // ---------------- TAB SWITCHING ----------------
+      function switchTab(tab) {
+        currentTab = tab;
+        const contentTab = document.getElementById("tabContent");
+        const tablesTab = document.getElementById("tabTables");
+        const contentBtn = document.getElementById("tabContentBtn");
+        const tablesBtn = document.getElementById("tabTablesBtn");
+
+        if (tab === "content") {
+          contentTab.classList.remove("hidden");
+          tablesTab.classList.add("hidden");
+          contentBtn.classList.add("border-blue-600", "text-blue-600");
+          contentBtn.classList.remove("text-gray-600");
+          tablesBtn.classList.remove("border-blue-600", "text-blue-600");
+          tablesBtn.classList.add("text-gray-600");
+        } else {
+          contentTab.classList.add("hidden");
+          tablesTab.classList.remove("hidden");
+          contentBtn.classList.remove("border-blue-600", "text-blue-600");
+          contentBtn.classList.add("text-gray-600");
+          tablesBtn.classList.add("border-blue-600", "text-blue-600");
+          tablesBtn.classList.remove("text-gray-600");
+        }
+      }
+
+      // ---------------- NOTIFICATION ----------------
+      function showNotification(message, type = "info", duration = 3000) {
+  const container = document.getElementById("notificationContainer");
+  const notif = document.createElement("div");
+  notif.className = `notification ${type} flex items-center`;
+
+  notif.innerHTML = `
+    <div class="flex-1 pr-4">${message}</div>
+    <button
+      class="ml-2 text-white hover:text-gray-200"
+      onclick="this.parentElement.classList.remove('show'); setTimeout(() => this.parentElement.remove(), 400)"
+      aria-label="Dismiss Notification"
+    >
+      <i class="fa fa-times"></i>
+    </button>
+  `;
+
+  container.appendChild(notif);
+
+  setTimeout(() => notif.classList.add("show"), 10);
+  setTimeout(() => {
+    notif.classList.remove("show");
+    setTimeout(() => container.removeChild(notif), 400);
+  }, duration);
+}
+
+
+      // ---------------- DASHBOARD RENDER ----------------
+      function renderDashboard(targetId, total, high, low, pending, approved) {
+        const container = document.getElementById(targetId);
+        if (!container) return;
+        
+        container.innerHTML = "";
+
+        const cards = [
+          { title: "Total Documents", count: total, color: "blue", icon: "fa-file" },
+          { title: "High Priority", count: high, color: "red", icon: "fa-exclamation-triangle" },
+          { title: "Low Priority", count: low, color: "green", icon: "fa-check-circle" },
+          { title: "Pending Documents", count: pending, color: "yellow", icon: "fa-hourglass-half" },
+          { title: "Approved Documents", count: approved, color: "teal", icon: "fa-check" },
+        ];
+
+        cards.forEach((card) => {
+          const div = document.createElement("div");
+          div.className = "dashboard-card";
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-600 mb-1">${card.title}</p>
+                <p class="text-2xl font-bold text-gray-900">${card.count}</p>
+              </div>
+              <div class="w-12 h-12 bg-${card.color}-50 rounded-lg flex items-center justify-center">
+                <i class="fa ${card.icon} text-${card.color}-600 text-xl"></i>
+              </div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // ---------------- FILE UPLOAD DRAG & DROP ----------------
+      function setupFileUpload() {
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('fileInput');
+
+        if (!uploadArea || !fileInput) return;
+
+        uploadArea.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadArea.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          if (files.length > 0) {
+            fileInput.files = files;
+            updateUploadAreaText(files[0].name);
+          }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files.length > 0) {
+            updateUploadAreaText(e.target.files[0].name);
+          }
+        });
+      }
+
+      function updateUploadAreaText(filename) {
+  const content = document.getElementById('uploadAreaContent');
+  if (content) {
+    content.innerHTML = `
+      <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-4">
+        <i class="fa fa-check text-green-500 text-xl"></i>
+      </div>
+      <p class="text-green-600 font-medium mb-1">${filename}</p>
+      <p class="text-sm text-gray-500">Click to change file</p>
+    `;
+  }
+}
+
+
+      // ---------------- INIT ----------------
+      function init() {
+        loadDepartmentsDropdown();
+        setupFileUpload();
+        
+        // Show upload section by default (as per screenshot)
+        showSection('upload');
+        
+        // Load documents for table
+        loadHomeDocs().then(() => {
+          if (cachedDocs) {
+            renderDocumentsTable();
+          }
+        });
+      }
+
+      // Start the application
+      document.addEventListener('DOMContentLoaded', init);
+    </script>
+  </body>
+</html>
